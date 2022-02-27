@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header style="background-image: url(images/bg-desktop-dark.jpg)">
+        <div class="container">
+            <div class="header-wrapper">
+                <div class="logo">
+                    <a href="index.html">
+                        <h1>TODO</h1>
+                    </a>
+                </div>
+                <div class="theme-icon">
+                    <img src="images/icon-sun.svg" alt="Sun Icon" />
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <form class="todo-form">
+            <button type="submit" class="submit-btn">Submit</button>
+            <input type="text" name="add_todo" autocomplete="off" placeholder="Create a new todo..." />
+            <input type="text" name="hidden_item" hidden />
+        </form>
+
+        <div class="todo-items-wrapper">
+            <ul class="todo-items"></ul>
+            
+            <div class="todo-footer">
+                <div class="left-items">5 Items left</div>
+                <ul class="footer-menus">
+                    <li class="active">All</li>
+                    <li>Active</li>
+                    <li>Completed</li>
+                </ul>
+                <button class="clear-completed">Clear Completed</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
