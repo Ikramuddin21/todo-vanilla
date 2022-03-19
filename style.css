@@ -176,7 +176,7 @@ header {
 }
 
 .footer-menus li:hover,
-.footer-menus li.active {
+.footer-menus li.selected {
     color: #5083f5;
 }
 

@@ -3,8 +3,11 @@ const todoForm = document.querySelector(".todo-form");
 const todoItems = document.querySelector(".todo-items");
 const todoFooter = document.querySelector(".todo-footer");
 const clearCompletedBtn = document.querySelector(".clear-completed");
+const footerMenus = document.querySelectorAll(".footer-menus li");
 
-let tasks = [];
+let tasks = [],
+    filteredTasks = [],
+    isShowAllTasks = true;
 
 const handleSubmit = e => {
     e.preventDefault();
@@ -33,7 +36,7 @@ const handleSubmit = e => {
     const task = e.target.add_todo.value;
     // can't added empty input value
     if (!task) return;
-    
+
     const item = {
         id: Math.round(Math.random() * 1000000000),
         task: task,
@@ -49,32 +52,35 @@ const handleSubmit = e => {
 };
 
 const displayTasks = () => {
-    const html = tasks.map(item => `<li>
-                <label id="${item.id}" class="todo-left ${item.isCompleted && "completed"}" for="item-${item.id}">
-                    <input type="checkbox" value=${item.id} id="item-${item.id}" ${item.isCompleted && "checked"}>
-                    ${item.task}
-                </label>
-
-                <div class="todo-right">
-                    <button class="edit" value="${item.id}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="edit-icon h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                    </button>
-
-                    <button class="delete" value="${item.id}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-    </li>`).join("");
+    let html = "";
+    if (isShowAllTasks) {
+        html = tasks.map(item => listItem(item)).join("");
+    }
+    else {
+        html = filteredTasks.map(item => listItem(item)).join("");
+    }
 
     todoItems.innerHTML = html;
+};
+
+// list item 
+const listItem = item => {
+    return `<li>
+    <label id="${item.id}" class="todo-left ${item.isCompleted && "completed"}" for="item-${item.id}">
+        <input type="checkbox" value=${item.id} id="item-${item.id}" ${item.isCompleted && "checked"}>
+        ${item.task}
+    </label>
+
+    <div class="todo-right">
+        <button class="edit" value="${item.id}">
+           ${editIcon()}
+        </button>
+
+        <button class="delete" value="${item.id}">
+            ${deleteIcon()}
+        </button>
+    </div>
+</li>`
 };
 
 const saveTasksLocalStorage = () => {
@@ -116,7 +122,7 @@ const clearCompletedTasks = () => {
     const completedTasks = tasks.filter(item => item.isCompleted);
 
     if (completedTasks.length === 0) {
-        alert("Please, completed your task!!");
+        alert('Press the Clear button after completing at least one task.');
     }
     else {
         tasks = inCompletedTasks;
@@ -139,11 +145,20 @@ const completedTask = id => {
 
 // delete task
 const deleteTask = id => {
-    const deleteItem = tasks.filter(item => item.id !== id);
-    tasks = deleteItem;
-    // custom event
-    todoItems.dispatchEvent(new CustomEvent("updateTask"));
-    displayFooter();
+    const [deleteItem] = tasks.filter(item => item.id === id);
+    if(!deleteItem.isCompleted) {
+        alert('Sorry, your selected task inCompleted.')
+    }
+    else {
+        const confirmPopup = confirm('Delete your task?');
+        if(confirmPopup) {
+            const deleteItem = tasks.filter(item => item.id !== id);
+            tasks = deleteItem;
+            // custom event
+            todoItems.dispatchEvent(new CustomEvent("updateTask"));
+            displayFooter();
+        }
+    }
 };
 
 // edit task
@@ -153,11 +168,51 @@ const editTask = id => {
     todoForm.querySelector("[name='hidden_item']").value = editItem.id;
 }
 
+// filter todo menus
+const filterMenus = e => {
+    // remove selected class from all li
+    footerMenus.forEach(menu => menu.classList.remove('selected'));
+    // add selected class on clicked li
+    const classes = e.target.classList;
+    classes.add('selected');
+
+    if (classes.contains('all')) {
+        isShowAllTasks = true;
+        todoItems.dispatchEvent(new CustomEvent('updateTask'));
+    }
+    else if (classes.contains('active')) {
+        filteringShowTasks(false);
+    }
+    else if (classes.contains('completed')) {
+        filteringShowTasks(true);
+    }
+};
+
+const filteringShowTasks = completed => {
+    isShowAllTasks = false;
+    const clonedArray = [...tasks];
+
+    let newTasks;
+    completed ? newTasks = clonedArray.filter(task => task.isCompleted) :
+        newTasks = clonedArray.filter(task => !task.isCompleted);
+
+    if (newTasks.length === 0) {
+        completed ? alert('Please, Press the completed button after completing at least one task.') :
+        alert('OPPS!! Already all task completed.');
+    }
+    else {
+        filteredTasks = newTasks;
+        todoItems.dispatchEvent(new CustomEvent('updateTask'));
+    }
+};
+
 // event listener
 todoForm.addEventListener("submit", handleSubmit);
 todoItems.addEventListener("updateTask", displayTasks);
 todoItems.addEventListener("updateTask", saveTasksLocalStorage);
 clearCompletedBtn.addEventListener("click", clearCompletedTasks);
+
+footerMenus.forEach(menu => menu.addEventListener("click", filterMenus));
 
 todoItems.addEventListener("click", e => {
     // completed task
